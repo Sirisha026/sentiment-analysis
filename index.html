@@ -1,978 +1,972 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Advanced Sentiment Analysis | P. Pavani Sirisha</title>
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;500;700&display=swap" rel="stylesheet">
-    <style>
-        :root {
-            --neon-pink: #ff2a6d;
-            --neon-blue: #05d9e8;
-            --neon-purple: #d300c5;
-            --dark-bg: #0d0221;
-            --darker-bg: #05010e;
-            --text-primary: #ffffff;
-            --text-secondary: #b8b8b8;
-            --grid-color: rgba(5, 217, 232, 0.1);
-        }
-        
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
-        body {
-            font-family: 'Rajdhani', sans-serif;
-            background-color: var(--dark-bg);
-            color: var(--text-primary);
-            overflow-x: hidden;
-            background-image: 
-                linear-gradient(var(--grid-color) 1px, transparent 1px),
-                linear-gradient(90deg, var(--grid-color) 1px, transparent 1px);
-            background-size: 50px 50px;
-            background-position: center;
-            padding: 2rem;
-            min-height: 100vh;
-        }
-        
-        .cyber-container {
-            max-width: 1200px;
-            margin: 0 auto;
-            background: rgba(13, 2, 33, 0.7);
-            border: 1px solid rgba(5, 217, 232, 0.2);
-            box-shadow: 0 0 20px rgba(5, 217, 232, 0.1),
-                       inset 0 0 20px rgba(5, 217, 232, 0.1);
-            backdrop-filter: blur(5px);
-            padding: 2rem;
-            border-radius: 5px;
-            position: relative;
-            overflow: hidden;
-        }
-        
-        .cyber-container::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 5px;
-            height: 100%;
-            background: linear-gradient(to bottom, var(--neon-pink), var(--neon-blue));
-        }
-        
-        h1 {
-            font-family: 'Orbitron', sans-serif;
-            font-size: 3rem;
-            font-weight: 900;
-            margin-bottom: 1.5rem;
-            text-transform: uppercase;
-            letter-spacing: 3px;
-            color: transparent;
-            background: linear-gradient(90deg, var(--neon-pink), var(--neon-blue));
-            -webkit-background-clip: text;
-            background-clip: text;
-            text-shadow: 0 0 10px rgba(255, 42, 109, 0.3);
-            position: relative;
-            display: inline-block;
-            text-align: center;
-            width: 100%;
-        }
-        
-        h1::after {
-            content: '';
-            position: absolute;
-            bottom: -10px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 100px;
-            height: 3px;
-            background: linear-gradient(90deg, var(--neon-pink), var(--neon-blue));
-            border-radius: 3px;
-        }
-        
-        .dashboard {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 2rem;
-            margin-top: 2rem;
-        }
-        
-        @media (max-width: 768px) {
-            .dashboard {
-                grid-template-columns: 1fr;
-            }
-        }
-        
-        .input-section, .results-section {
-            padding: 1.5rem;
-            background: rgba(5, 1, 14, 0.7);
-            border: 1px solid rgba(5, 217, 232, 0.2);
-            border-radius: 5px;
-        }
-        
-        .input-section h2, .results-section h2 {
-            font-family: 'Orbitron', sans-serif;
-            color: var(--neon-blue);
-            margin-bottom: 1.5rem;
-            font-size: 1.5rem;
-            letter-spacing: 1px;
-        }
-        
-        textarea {
-            width: 100%;
-            height: 200px;
-            padding: 1rem;
-            margin-bottom: 1rem;
-            background: rgba(5, 217, 232, 0.1);
-            border: 1px solid var(--neon-blue);
-            color: white;
-            font-size: 1rem;
-            resize: vertical;
-            font-family: 'Rajdhani', sans-serif;
-            transition: all 0.3s;
-        }
-        
-        textarea:focus {
-            outline: none;
-            border-color: var(--neon-pink);
-            box-shadow: 0 0 15px var(--neon-pink);
-        }
-        
-        .btn-group {
-            display: flex;
-            gap: 1rem;
-            margin-bottom: 1.5rem;
-            flex-wrap: wrap;
-        }
-        
-        .btn {
-            padding: 0.8rem 1.5rem;
-            border: none;
-            border-radius: 0;
-            font-weight: bold;
-            cursor: pointer;
-            transition: all 0.4s;
-            text-decoration: none;
-            display: inline-block;
-            font-size: 1rem;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            position: relative;
-            overflow: hidden;
-            font-family: 'Orbitron', sans-serif;
-            z-index: 1;
-        }
-        
-        .btn-primary {
-            background-color: transparent;
-            color: var(--neon-pink);
-            border: 2px solid var(--neon-pink);
-            box-shadow: 0 0 10px var(--neon-pink),
-                       inset 0 0 5px var(--neon-pink);
-        }
-        
-        .btn-primary:hover {
-            background-color: rgba(255, 42, 109, 0.2);
-        }
-        
-        .btn-secondary {
-            background-color: transparent;
-            color: var(--neon-blue);
-            border: 2px solid var(--neon-blue);
-            box-shadow: 0 0 10px var(--neon-blue),
-                       inset 0 0 5px var(--neon-blue);
-        }
-        
-        .btn-secondary:hover {
-            background-color: rgba(5, 217, 232, 0.2);
-        }
-        
-        .loading {
-            display: none;
-            text-align: center;
-            padding: 1rem;
-            color: var(--neon-blue);
-            font-size: 1.1rem;
-        }
-        
-        .loading i {
-            animation: spin 1s linear infinite;
-        }
-        
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-        
-        .sentiment-result {
-            margin-bottom: 2rem;
-        }
-        
-        .sentiment-score {
-            font-size: 2rem;
-            font-weight: bold;
-            margin-bottom: 0.5rem;
-            text-transform: uppercase;
-            font-family: 'Orbitron', sans-serif;
-        }
-        
-        .positive {
-            color: #00ff88;
-            text-shadow: 0 0 10px rgba(0, 255, 136, 0.5);
-        }
-        
-        .negative {
-            color: #ff2a6d;
-            text-shadow: 0 0 10px rgba(255, 42, 109, 0.5);
-        }
-        
-        .neutral {
-            color: #f5d742;
-            text-shadow: 0 0 10px rgba(245, 215, 66, 0.5);
-        }
-        
-        .confidence-meter {
-            height: 20px;
-            background: rgba(5, 217, 232, 0.1);
-            border-radius: 10px;
-            margin-bottom: 1rem;
-            overflow: hidden;
-            position: relative;
-        }
-        
-        .confidence-bar {
-            height: 100%;
-            border-radius: 10px;
-            transition: width 0.5s ease;
-        }
-        
-        .confidence-positive {
-            background: linear-gradient(90deg, rgba(0, 255, 136, 0.5), #00ff88);
-        }
-        
-        .confidence-negative {
-            background: linear-gradient(90deg, rgba(255, 42, 109, 0.5), #ff2a6d);
-        }
-        
-        .confidence-neutral {
-            background: linear-gradient(90deg, rgba(245, 215, 66, 0.5), #f5d742);
-        }
-        
-        .confidence-labels {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 1.5rem;
-            font-size: 0.9rem;
-            color: var(--text-secondary);
-        }
-        
-        .confidence-label {
-            text-align: center;
-            flex: 1;
-        }
-        
-        .confidence-value {
-            font-weight: bold;
-            color: var(--text-primary);
-        }
-        
-        .emotion-analysis {
-            margin-top: 2rem;
-        }
-        
-        .emotion-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-            gap: 1rem;
-            margin-top: 1rem;
-        }
-        
-        .emotion-item {
-            background: rgba(5, 217, 232, 0.05);
-            padding: 0.8rem;
-            border-radius: 5px;
-            text-align: center;
-            border: 1px solid rgba(5, 217, 232, 0.2);
-        }
-        
-        .emotion-name {
-            font-size: 0.9rem;
-            margin-bottom: 0.3rem;
-            color: var(--text-secondary);
-        }
-        
-        .emotion-value {
-            font-weight: bold;
-            color: var(--neon-blue);
-        }
-        
-        .history-section {
-            margin-top: 2rem;
-        }
-        
-        .history-list {
-            max-height: 200px;
-            overflow-y: auto;
-            margin-top: 1rem;
-            border: 1px solid rgba(5, 217, 232, 0.2);
-            border-radius: 5px;
-            padding: 0.5rem;
-        }
-        
-        .history-item {
-            padding: 0.8rem;
-            border-bottom: 1px solid rgba(5, 217, 232, 0.1);
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-        
-        .history-item:hover {
-            background: rgba(5, 217, 232, 0.1);
-        }
-        
-        .history-item:last-child {
-            border-bottom: none;
-        }
-        
-        .history-text {
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            margin-bottom: 0.3rem;
-        }
-        
-        .history-sentiment {
-            font-size: 0.8rem;
-            display: inline-block;
-            padding: 0.2rem 0.5rem;
-            border-radius: 3px;
-        }
-        
-        .keyword-section {
-            margin-top: 2rem;
-        }
-        
-        .keywords {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 0.5rem;
-            margin-top: 1rem;
-        }
-        
-        .keyword {
-            background: rgba(255, 42, 109, 0.1);
-            color: var(--neon-pink);
-            padding: 0.3rem 0.8rem;
-            border-radius: 20px;
-            font-size: 0.8rem;
-            border: 1px solid var(--neon-pink);
-        }
-        
-        .visualization {
-            margin-top: 2rem;
-            height: 200px;
-            background: rgba(5, 217, 232, 0.05);
-            border: 1px solid rgba(5, 217, 232, 0.2);
-            border-radius: 5px;
-            display: flex;
-            align-items: flex-end;
-            justify-content: space-around;
-            padding: 1rem;
-        }
-        
-        .visualization-bar {
-            width: 30px;
-            background: var(--neon-blue);
-            transition: height 0.5s ease;
-            position: relative;
-            border-radius: 3px 3px 0 0;
-        }
-        
-        .visualization-bar::after {
-            content: attr(data-value);
-            position: absolute;
-            top: -25px;
-            left: 50%;
-            transform: translateX(-50%);
-            font-size: 0.8rem;
-            color: var(--text-primary);
-        }
-        
-        .visualization-label {
-            position: absolute;
-            bottom: -25px;
-            left: 50%;
-            transform: translateX(-50%);
-            font-size: 0.8rem;
-            color: var(--text-secondary);
-        }
-        
-        /* Cyber decorations */
-        .cyber-circle {
-            position: absolute;
-            border-radius: 50%;
-            border: 2px solid var(--neon-blue);
-            box-shadow: 0 0 15px var(--neon-blue),
-                       inset 0 0 15px var(--neon-blue);
-            animation: pulse 6s infinite alternate;
-            opacity: 0.3;
-            z-index: -1;
-        }
-        
-        .cyber-circle:nth-child(1) {
-            width: 200px;
-            height: 200px;
-            top: -100px;
-            right: -100px;
-        }
-        
-        .cyber-circle:nth-child(2) {
-            width: 300px;
-            height: 300px;
-            bottom: -150px;
-            left: -150px;
-            animation-delay: 2s;
-        }
-        
-        @keyframes pulse {
-            0% { transform: scale(1); opacity: 0.3; }
-            50% { transform: scale(1.05); opacity: 0.5; }
-            100% { transform: scale(1); opacity: 0.3; }
-        }
-    </style>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Advanced Sentiment Analysis</title>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;500;700&display=swap" rel="stylesheet">
+  <style>
+    :root{
+      --neon-pink:#ff2a6d;
+      --neon-blue:#05d9e8;
+      --neon-purple:#d300c5;
+      --dark-bg:#0d0221;
+      --text-primary:#ffffff;
+      --text-secondary:#b8b8b8;
+    }
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{
+      font-family:'Rajdhani',sans-serif;
+      background-color:var(--dark-bg);
+      color:var(--text-primary);
+      overflow-x:hidden;
+      background-image:
+        linear-gradient(rgba(5,217,232,0.1) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(5,217,232,0.1) 1px, transparent 1px);
+      background-size:50px 50px;
+      padding:2rem;
+      min-height:100vh;
+    }
+    .cyber-container{
+      max-width:1200px;
+      margin:0 auto;
+      background:rgba(13,2,33,0.7);
+      border:1px solid rgba(5,217,232,0.2);
+      box-shadow:0 0 20px rgba(5,217,232,0.1), inset 0 0 20px rgba(5,217,232,0.1);
+      backdrop-filter:blur(5px);
+      padding:2rem;
+      border-radius:5px;
+      position:relative;
+      overflow:hidden;
+    }
+    .cyber-container::before{
+      content:'';position:absolute;top:0;left:0;width:5px;height:100%;
+      background:linear-gradient(to bottom,var(--neon-pink),var(--neon-blue));
+    }
+    h1{
+      font-family:'Orbitron',sans-serif;font-size:3rem;font-weight:900;margin-bottom:1.5rem;
+      text-transform:uppercase;letter-spacing:3px;color:transparent;
+      background:linear-gradient(90deg,var(--neon-pink),var(--neon-blue));
+      -webkit-background-clip:text;background-clip:text;text-shadow:0 0 10px rgba(255,42,109,0.3);
+      position:relative;display:inline-block;text-align:center;width:100%;
+    }
+    h1::after{
+      content:'';position:absolute;bottom:-10px;left:50%;transform:translateX(-50%);
+      width:100px;height:3px;background:linear-gradient(90deg,var(--neon-pink),var(--neon-blue));
+      border-radius:3px;
+    }
+
+    .dashboard{display:grid;grid-template-columns:1fr 1fr;gap:2rem;margin-top:2rem;}
+    @media (max-width: 980px){ .dashboard{grid-template-columns:1fr} }
+
+    .input-section,.results-section{padding:1.5rem;background:rgba(5,1,14,0.7);border:1px solid rgba(5,217,232,0.2);border-radius:5px;}
+    .input-section h2,.results-section h2{font-family:'Orbitron',sans-serif;color:var(--neon-blue);margin-bottom:1.5rem;font-size:1.5rem;}
+
+    /* Mode toggle */
+    .mode-toggle{display:flex;gap:0.6rem;margin-bottom:1rem;align-items:center;}
+    .mode-btn{padding:0.5rem 0.9rem;border-radius:4px;font-weight:700;border:1px solid rgba(5,217,232,0.12);background:rgba(5,217,232,0.03);color:var(--neon-blue);cursor:pointer;font-family:'Orbitron',sans-serif;letter-spacing:1px}
+    .mode-btn.active{background:linear-gradient(90deg,var(--neon-pink),var(--neon-blue));color:#05010e;box-shadow:0 0 10px rgba(5,217,232,0.08)}
+
+    textarea{width:100%;height:200px;padding:1rem;margin-bottom:1rem;background:rgba(5,217,232,0.1);border:1px solid var(--neon-blue);color:white;font-size:1rem;resize:vertical;font-family:'Rajdhani',sans-serif;transition:all 0.3s}
+    textarea:focus{outline:none;border-color:var(--neon-pink);box-shadow:0 0 15px var(--neon-pink)}
+
+    .btn-group{display:flex;gap:1rem;margin-bottom:1.5rem;flex-wrap:wrap;}
+    .btn{padding:0.8rem 1.5rem;border:none;border-radius:0;font-weight:bold;cursor:pointer;transition:all 0.4s;text-decoration:none;display:inline-block;font-size:1rem;text-transform:uppercase;letter-spacing:1px;position:relative;overflow:hidden;font-family:'Orbitron',sans-serif;z-index:1}
+    .btn-primary{background-color:transparent;color:var(--neon-pink);border:2px solid var(--neon-pink);box-shadow:0 0 10px var(--neon-pink), inset 0 0 5px var(--neon-pink)}
+    .btn-secondary{background-color:transparent;color:var(--neon-blue);border:2px solid var(--neon-blue);box-shadow:0 0 10px var(--neon-blue), inset 0 0 5px var(--neon-blue)}
+    .btn-primary:hover{background-color:rgba(255,42,109,0.2)}
+    .btn-secondary:hover{background-color:rgba(5,217,232,0.2)}
+
+    .loading{display:none;text-align:center;padding:1rem;color:var(--neon-blue);font-size:1.1rem}
+    .sentiment-result{margin-bottom:2rem}
+    .sentiment-score{font-size:2rem;font-weight:bold;margin-bottom:0.5rem;text-transform:uppercase;font-family:'Orbitron',sans-serif}
+    .positive{color:#00ff88;text-shadow:0 0 10px rgba(0,255,136,0.5)}
+    .negative{color:#ff2a6d;text-shadow:0 0 10px rgba(255,42,109,0.5)}
+    .neutral{color:#f5d742;text-shadow:0 0 10px rgba(245,215,66,0.5)}
+    .confidence-meter{height:20px;background:rgba(5,217,232,0.1);border-radius:10px;margin-bottom:1rem;overflow:hidden;position:relative}
+    .confidence-bar{height:100%;border-radius:10px;transition:width 0.5s ease}
+    .confidence-positive{background:linear-gradient(90deg, rgba(0,255,136,0.5), #00ff88)}
+    .confidence-negative{background:linear-gradient(90deg, rgba(255,42,109,0.5), #ff2a6d)}
+    .confidence-neutral{background:linear-gradient(90deg, rgba(245,215,66,0.5), #f5d742)}
+    .confidence-labels{display:flex;justify-content:space-between;margin-bottom:1.5rem;font-size:0.9rem;color:var(--text-secondary)}
+    .confidence-label{text-align:center;flex:1}
+    .confidence-value{font-weight:bold;color:var(--text-primary)}
+
+    .emotion-analysis{margin-top:2rem}
+    .emotion-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:1rem;margin-top:1rem}
+    .emotion-item{background:rgba(5,217,232,0.05);padding:0.8rem;border-radius:5px;text-align:center;border:1px solid rgba(5,217,232,0.2)}
+    .emotion-name{font-size:0.9rem;margin-bottom:0.3rem;color:var(--text-secondary)}
+    .emotion-value{font-weight:bold;color:var(--neon-blue)}
+    .history-section{margin-top:2rem}
+    .history-list{max-height:200px;overflow-y:auto;margin-top:1rem;border:1px solid rgba(5,217,232,0.2);border-radius:5px;padding:0.5rem}
+    .history-item{padding:0.8rem;border-bottom:1px solid rgba(5,217,232,0.1);cursor:pointer;transition:all 0.3s}
+    .history-item:hover{background:rgba(5,217,232,0.1)}
+    .history-text{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:0.3rem}
+    .keyword-section{margin-top:2rem}
+    .keywords{display:flex;flex-wrap:wrap;gap:0.5rem;margin-top:1rem}
+    .keyword{background:rgba(255,42,109,0.1);color:var(--neon-pink);padding:0.3rem 0.8rem;border-radius:20px;font-size:0.8rem;border:1px solid var(--neon-pink)}
+
+    .visualization{margin-top:2rem;height:200px;background:rgba(5,217,232,0.05);border:1px solid rgba(5,217,232,0.2);border-radius:5px;display:flex;align-items:flex-end;justify-content:space-around;padding:1rem}
+    .visualization-bar{width:30px;background:var(--neon-blue);transition:height 0.5s ease;position:relative;border-radius:3px 3px 0 0}
+    .visualization-bar::after{content:attr(data-value);position:absolute;top:-25px;left:50%;transform:translateX(-50%);font-size:0.8rem;color:var(--text-primary)}
+    .visualization-label{position:absolute;bottom:-25px;left:50%;transform:translateX(-50%);font-size:0.8rem;color:var(--text-secondary)}
+
+    /* sign mode split panel */
+    .sign-panel {
+      position: absolute;
+      top: 3.2rem;
+      left: 2rem;
+      width: calc(100% - 4rem);
+      max-width: 1150px;
+      height: 500px;
+      background: rgba(0,0,0,0.22);
+      border: 1px solid rgba(5,217,232,0.10);
+      border-radius:8px;
+      padding:10px;
+      display:none;
+      z-index:60;
+      box-shadow: 0 6px 30px rgba(0,0,0,0.6);
+      backdrop-filter: blur(4px);
+    }
+    .sign-inner {
+      display:flex;
+      gap:12px;
+      height: calc(100% - 48px);
+    }
+    .sign-left, .sign-right { flex:1; min-width:0; display:flex; flex-direction:column; }
+    .sign-left { flex:0 0 52%; }
+    .sign-right { flex:0 0 48%; }
+    #signVideo {
+      width:100%;
+      height:100%;
+      object-fit:cover;
+      border-radius:6px;
+      transform:scaleX(-1);
+      border:1px solid rgba(5,217,232,0.08);
+    }
+    .canvas-wrap {
+      position:relative;
+      flex:1;
+      border-radius:6px;
+      overflow:hidden;
+      background: linear-gradient(180deg, rgba(0,0,0,0.15), rgba(0,0,0,0.06));
+      border:1px solid rgba(5,217,232,0.06);
+    }
+    #signCanvas {
+      position:absolute;
+      left:0;top:0;
+      width:100%;
+      height:100%;
+      pointer-events:all;
+      cursor:crosshair;
+    }
+    .sign-controls { display:flex; justify-content:space-between; align-items:center; padding-top:8px; }
+    .small-btn {
+      background:transparent;border:1px solid rgba(5,217,232,0.12);color:var(--neon-blue);padding:6px 8px;border-radius:6px;cursor:pointer;font-family:'Orbitron',sans-serif;font-size:0.9rem;
+    }
+    .gesture-guide {
+      background: rgba(5,217,232,0.05);
+      padding: 10px;
+      border-radius: 6px;
+      margin-top: 10px;
+      border: 1px solid rgba(5,217,232,0.1);
+    }
+    .gesture-list {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 8px;
+      margin-top: 8px;
+      font-size: 0.8rem;
+    }
+    .gesture-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .gesture-icon {
+      color: var(--neon-purple);
+      font-weight: bold;
+      min-width: 20px;
+    }
+
+    /* cyber circles */
+    .cyber-circle {
+      position:absolute;border-radius:50%;border:2px solid var(--neon-blue);
+      box-shadow:0 0 15px var(--neon-blue), inset 0 0 15px var(--neon-blue);
+      animation:pulse 6s infinite alternate;opacity:0.3;z-index:-1;
+    }
+    .cyber-circle:nth-child(1){width:200px;height:200px;top:-100px;right:-100px}
+    .cyber-circle:nth-child(2){width:300px;height:300px;bottom:-150px;left:-150px;animation-delay:2s}
+    @keyframes pulse {0%{transform:scale(1);opacity:0.3}50%{transform:scale(1.05);opacity:0.5}100%{transform:scale(1);opacity:0.3}}
+  </style>
 </head>
 <body>
-    <div class="cyber-container">
-        <div class="cyber-circle"></div>
-        <div class="cyber-circle"></div>
-        
-        <h1>Advanced Sentiment Analysis</h1>
-        <p style="text-align: center; margin-bottom: 2rem; color: var(--neon-blue);">Powered by AI and Natural Language Processing</p>
-        
-        <div class="dashboard">
-            <div class="input-section">
-                <h2>Text Input</h2>
-                <textarea id="text-input" placeholder="Enter your text here to analyze sentiment, emotions, and keywords..."></textarea>
-                
-                <div class="btn-group">
-                    <button id="analyze-btn" class="btn btn-primary">Analyze Text</button>
-                    <button id="clear-btn" class="btn btn-secondary">Clear</button>
-                    <button id="sample-btn" class="btn btn-secondary">Load Sample</button>
-                </div>
-                
-                <div class="loading" id="loading">
-                    <i class="fas fa-cog"></i> Analyzing text with AI...
-                </div>
-                
-                <div class="history-section">
-                    <h2>Analysis History</h2>
-                    <div class="history-list" id="history-list">
-                        <!-- History items will be added here -->
-                    </div>
-                </div>
-            </div>
-            
-            <div class="results-section">
-                <h2>Analysis Results</h2>
-                
-                <div id="results-content" style="display: none;">
-                    <div class="sentiment-result">
-                        <div class="sentiment-score" id="sentiment-score">Positive</div>
-                        <div class="confidence-meter">
-                            <div class="confidence-bar confidence-positive" id="confidence-bar" style="width: 75%"></div>
-                        </div>
-                        <div class="confidence-labels">
-                            <div class="confidence-label">
-                                <div>Positive</div>
-                                <div class="confidence-value" id="positive-value">75%</div>
-                            </div>
-                            <div class="confidence-label">
-                                <div>Neutral</div>
-                                <div class="confidence-value" id="neutral-value">15%</div>
-                            </div>
-                            <div class="confidence-label">
-                                <div>Negative</div>
-                                <div class="confidence-value" id="negative-value">10%</div>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="visualization">
-                        <div class="visualization-bar" style="height: 75%;" data-value="75%">
-                            <div class="visualization-label">Positive</div>
-                        </div>
-                        <div class="visualization-bar" style="height: 15%;" data-value="15%">
-                            <div class="visualization-label">Neutral</div>
-                        </div>
-                        <div class="visualization-bar" style="height: 10%;" data-value="10%">
-                            <div class="visualization-label">Negative</div>
-                        </div>
-                    </div>
-                    
-                    <div class="emotion-analysis">
-                        <h2>Emotion Detection</h2>
-                        <div class="emotion-grid" id="emotion-grid">
-                            <!-- Emotion items will be added here -->
-                        </div>
-                    </div>
-                    
-                    <div class="keyword-section">
-                        <h2>Key Phrases</h2>
-                        <div class="keywords" id="keywords">
-                            <!-- Keywords will be added here -->
-                        </div>
-                    </div>
-                </div>
-                
-                <div id="no-results" style="text-align: center; padding: 2rem; color: var(--text-secondary);">
-                    <i class="fas fa-robot" style="font-size: 3rem; margin-bottom: 1rem; color: var(--neon-blue);"></i>
-                    <p>Enter text and click "Analyze Text" to see sentiment analysis results</p>
-                </div>
-            </div>
+  <div class="cyber-container">
+    <div class="cyber-circle"></div>
+    <div class="cyber-circle"></div>
+
+    <h1>Advanced Sentiment Analysis</h1>
+    <p style="text-align:center;margin-bottom:2rem;color:var(--neon-blue)">Powered by AI and Natural Language Processing</p>
+
+    <div class="dashboard">
+      <div class="input-section">
+        <h2>Text Input</h2>
+
+        <div class="mode-toggle" aria-hidden="false">
+          <button id="mode-alphabet" class="mode-btn active">Alphabetical</button>
+          <button id="mode-sign" class="mode-btn">Sign Mode</button>
+          <div style="flex:1"></div>
+          <div style="color:var(--text-secondary);font-size:0.9rem;align-self:center;">Draw in the right panel with mouse/touch</div>
         </div>
+
+        <textarea id="text-input" placeholder="Enter your text here to analyze sentiment, emotions, and keywords..."></textarea>
+
+        <div class="btn-group">
+          <button id="analyze-btn" class="btn btn-primary">Analyze Text</button>
+          <button id="clear-btn" class="btn btn-secondary">Clear</button>
+          <button id="sample-btn" class="btn btn-secondary">Load Sample</button>
+        </div>
+
+        <div class="loading" id="loading"><i class="fas fa-cog"></i> Analyzing text with AI...</div>
+
+        <div class="history-section">
+          <h2>Analysis History</h2>
+          <div class="history-list" id="history-list"></div>
+        </div>
+      </div>
+
+      <div class="results-section">
+        <h2>Analysis Results</h2>
+        <div id="results-content" style="display:none">
+          <div class="sentiment-result">
+            <div class="sentiment-score" id="sentiment-score">Positive</div>
+            <div class="confidence-meter">
+              <div class="confidence-bar confidence-positive" id="confidence-bar" style="width:75%"></div>
+            </div>
+            <div class="confidence-labels">
+              <div class="confidence-label"><div>Positive</div><div class="confidence-value" id="positive-value">75%</div></div>
+              <div class="confidence-label"><div>Neutral</div><div class="confidence-value" id="neutral-value">15%</div></div>
+              <div class="confidence-label"><div>Negative</div><div class="confidence-value" id="negative-value">10%</div></div>
+            </div>
+          </div>
+
+          <div class="visualization">
+            <div class="visualization-bar" style="height:75%" data-value="75%"><div class="visualization-label">Positive</div></div>
+            <div class="visualization-bar" style="height:15%" data-value="15%"><div class="visualization-label">Neutral</div></div>
+            <div class="visualization-bar" style="height:10%" data-value="10%"><div class="visualization-label">Negative</div></div>
+          </div>
+
+          <div class="emotion-analysis">
+            <h2>Emotion Detection</h2>
+            <div class="emotion-grid" id="emotion-grid"></div>
+          </div>
+
+          <div class="keyword-section">
+            <h2>Key Phrases</h2>
+            <div class="keywords" id="keywords"></div>
+          </div>
+        </div>
+        <div id="no-results" style="text-align:center;padding:2rem;color:var(--text-secondary)">
+          <i class="fas fa-robot" style="font-size:3rem;margin-bottom:1rem;color:var(--neon-blue)"></i>
+          <p>Enter text and click "Analyze Text" to see sentiment analysis results</p>
+        </div>
+      </div>
     </div>
-    
-    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@3.18.0/dist/tf.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/universal-sentence-encoder@1.3.3/dist/universal-sentence-encoder.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/toxicity@1.2.2/dist/toxicity.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
-    
-    <script>
-        // Global variables
-        let model, toxicityModel, encoder;
-        let analysisHistory = [];
-        
-        // DOM elements
-        const textInput = document.getElementById('text-input');
-        const analyzeBtn = document.getElementById('analyze-btn');
-        const clearBtn = document.getElementById('clear-btn');
-        const sampleBtn = document.getElementById('sample-btn');
-        const loadingElement = document.getElementById('loading');
-        const resultsContent = document.getElementById('results-content');
-        const noResults = document.getElementById('no-results');
-        const historyList = document.getElementById('history-list');
-        const sentimentScore = document.getElementById('sentiment-score');
-        const confidenceBar = document.getElementById('confidence-bar');
-        const positiveValue = document.getElementById('positive-value');
-        const neutralValue = document.getElementById('neutral-value');
-        const negativeValue = document.getElementById('negative-value');
-        const emotionGrid = document.getElementById('emotion-grid');
-        const keywordsContainer = document.getElementById('keywords');
-        const visualizationBars = document.querySelectorAll('.visualization-bar');
-        
-        // Sample texts
-        const sampleTexts = [
-           // POSITIVE
+
+    <!-- SIGN PANEL -->
+    <div id="signPanel" class="sign-panel" aria-hidden="true">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;color:var(--neon-blue);font-family:'Orbitron',sans-serif;font-weight:700">
+        <div>Sign Mode - Draw Gestures</div>
+        <div id="signStatus" style="font-size:0.95rem;color:var(--text-secondary)">Click and drag to draw gestures</div>
+      </div>
+
+      <div class="sign-inner">
+        <div class="sign-left">
+          <div style="position:relative;flex:1;border-radius:6px;overflow:hidden;background:rgba(5,217,232,0.05);display:flex;align-items:center;justify-content:center;">
+            <div style="text-align:center;color:var(--text-secondary);padding:2rem;">
+              <i class="fas fa-hand-point-up" style="font-size:3rem;color:var(--neon-blue);margin-bottom:1rem;"></i>
+              <h3 style="color:var(--neon-blue);margin-bottom:1rem;">Gesture Drawing Area</h3>
+              <p>Use the canvas on the right to draw gestures</p>
+              <p>Draw upward for Happy, downward for Sad</p>
+              <p>Draw circles for Love, zigzags for Excited</p>
+            </div>
+          </div>
+          
+          <div class="gesture-guide">
+            <div style="font-weight:bold;color:var(--neon-blue);margin-bottom:8px;">Gesture Guide:</div>
+            <div class="gesture-list">
+              <div class="gesture-item"><span class="gesture-icon">↑</span> Upward = Happy</div>
+              <div class="gesture-item"><span class="gesture-icon">↓</span> Downward = Sad</div>
+              <div class="gesture-item"><span class="gesture-icon">→</span> Right = Angry</div>
+              <div class="gesture-item"><span class="gesture-icon">←</span> Left = Surprised</div>
+              <div class="gesture-item"><span class="gesture-icon">○</span> Circle = Love</div>
+              <div class="gesture-item"><span class="gesture-icon">Z</span> Zigzag = Excited</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="sign-right">
+          <div class="canvas-wrap">
+            <canvas id="signCanvas"></canvas>
+          </div>
+
+          <div class="sign-controls" style="margin-top:8px;">
+            <div>
+              <button id="clearDrawingBtn" class="small-btn">Clear Drawing</button>
+              <button id="insertLabelBtn" class="small-btn">Insert Label</button>
+            </div>
+            <div style="color:var(--text-secondary);font-size:0.95rem">Detected: <span id="detectedLabel" class="detected">—</span></div>
+          </div>
+
+          <div class="sign-analytics">
+            <div class="mini-results" id="signMiniResults"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- libs -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
+
+  <script>
+    // ---------- BASIC APP VARIABLES & DOM ----------
+    let analysisHistory = [];
+    const textInput = document.getElementById('text-input');
+    const analyzeBtn = document.getElementById('analyze-btn');
+    const clearBtn = document.getElementById('clear-btn');
+    const sampleBtn = document.getElementById('sample-btn');
+    const loadingElement = document.getElementById('loading');
+    const resultsContent = document.getElementById('results-content');
+    const noResults = document.getElementById('no-results');
+    const historyList = document.getElementById('history-list');
+    const sentimentScore = document.getElementById('sentiment-score');
+    const confidenceBar = document.getElementById('confidence-bar');
+    const positiveValue = document.getElementById('positive-value');
+    const neutralValue = document.getElementById('neutral-value');
+    const negativeValue = document.getElementById('negative-value');
+    const emotionGrid = document.getElementById('emotion-grid');
+    const keywordsContainer = document.getElementById('keywords');
+    const visualizationBars = document.querySelectorAll('.visualization-bar');
+
+    // sample texts
+    const sampleTexts = [
+      // POSITIVE
       "I absolutely love this new smartphone! The camera quality is exceptional, battery life lasts all day, and the interface is incredibly smooth. It's worth every penny and has exceeded all my expectations. Highly recommended!",
+      
       // NEGATIVE  
       "This is the worst product I've ever purchased! It stopped working after just two days, the build quality is terrible, and customer support was completely unhelpful. Save your money and avoid this at all costs.",
+      
       // NEUTRAL
       "The device functions as described in the specifications. The battery lasts about 8 hours with normal use, and the performance is adequate for basic tasks. It meets the basic requirements without any standout features.",
+      
       // POSITIVE
       "The customer service was outstanding! The representative went above and beyond to help me, was very patient and knowledgeable. They resolved my issue quickly and even followed up to make sure everything was perfect.",
+      
       // NEGATIVE
       "Horrible customer service experience. I waited on hold for 45 minutes only to be transferred to someone who couldn't help me. They were rude and dismissive, and my problem still isn't resolved after three weeks."
-        ];
-        
-        // Initialize the app
-        document.addEventListener('DOMContentLoaded', async () => {
-            // Load models
-            await loadModels();
-            
-            // Set up event listeners
-            analyzeBtn.addEventListener('click', analyzeText);
-            clearBtn.addEventListener('click', clearText);
-            sampleBtn.addEventListener('click', loadSampleText);
-            
-            // Load any saved history from localStorage
-            loadHistory();
-        });
-        
-        // Load ML models
-        async function loadModels() {
-            try {
-                loadingElement.style.display = 'block';
-                loadingElement.textContent = "Loading AI models... (This may take a moment)";
-                
-                // Load Universal Sentence Encoder
-                encoder = await use.load();
-                
-                // Load Toxicity model for more advanced sentiment/emotion analysis
-                const threshold = 0.8;
-                toxicityModel = await toxicity.load(threshold);
-                
-                loadingElement.style.display = 'none';
-                console.log("All models loaded successfully");
-            } catch (error) {
-                console.error("Error loading models:", error);
-                loadingElement.textContent = "Error loading AI models. Please refresh the page.";
-            }
-        }
-        
-        // Analyze the text
-        async function analyzeText() {
-            const text = textInput.value.trim();
-            
-            if (!text) {
-                alert("Please enter some text to analyze");
-                return;
-            }
-            
-            try {
-                loadingElement.style.display = 'block';
-                noResults.style.display = 'none';
-                resultsContent.style.display = 'none';
-                
-                // Simulate more advanced analysis with multiple components
-                const [sentiment, emotions, keyPhrases] = await Promise.all([
-                    analyzeSentiment(text),
-                    detectEmotions(text),
-                    extractKeyPhrases(text)
-                ]);
-                
-                // Display results
-                displayResults(sentiment, emotions, keyPhrases);
-                
-                // Add to history
-                addToHistory(text, sentiment, emotions, keyPhrases);
-                
-                loadingElement.style.display = 'none';
-                resultsContent.style.display = 'block';
-            } catch (error) {
-                console.error("Error analyzing text:", error);
-                loadingElement.textContent = "Error analyzing text. Please try again.";
-            }
-        }
-        
-        // Analyze sentiment (more advanced version)
-        async function analyzeSentiment(text) {
-            // In a real application, we would use the actual models
-            // For this demo, we'll simulate more sophisticated analysis
-            
-            // Calculate sentiment score based on text content
-            let positiveScore = 0;
-            let negativeScore = 0;
-            let neutralScore = 0;
-            
-            // Positive words with weights
-            const positiveWords = [
-                {word: 'love', weight: 2}, 
-                {word: 'great', weight: 1.5},
-                {word: 'excellent', weight: 2},
-                {word: 'happy', weight: 1.5},
-                {word: 'amazing', weight: 2},
-                {word: 'fantastic', weight: 2},
-                {word: 'perfect', weight: 2},
-                {word: 'awesome', weight: 1.5}
-            ];
-            
-            // Negative words with weights
-            const negativeWords = [
-                {word: 'hate', weight: 2},
-                {word: 'terrible', weight: 2},
-                {word: 'awful', weight: 2},
-                {word: 'angry', weight: 1.5},
-                {word: 'furious', weight: 2},
-                {word: 'disappointed', weight: 1.5},
-                {word: 'poor', weight: 1},
-                {word: 'bad', weight: 1}
-            ];
-            
-            // Count exclamation marks and question marks
-            const exclamationCount = (text.match(/!/g) || []).length;
-            const questionCount = (text.match(/\?/g) || []).length;
-            
-            // Check for negation
-            const hasNegation = /\b(not|no|never)\b/.test(text.toLowerCase());
-            
-            // Analyze words
-            const textLower = text.toLowerCase();
-            
-            positiveWords.forEach(item => {
-                if (textLower.includes(item.word)) {
-                    positiveScore += item.weight;
-                }
-            });
-            
-            negativeWords.forEach(item => {
-                if (textLower.includes(item.word)) {
-                    negativeScore += item.weight;
-                }
-            });
-            
-            // Adjust scores based on punctuation and negation
-            positiveScore += exclamationCount * 0.3;
-            negativeScore += questionCount * 0.2;
-            
-            if (hasNegation) {
-                // If negation is present, it might flip the sentiment
-                positiveScore *= 0.5;
-                negativeScore *= 1.5;
-            }
-            
-            // Calculate final percentages
-            const total = positiveScore + negativeScore + neutralScore + 3; // +3 for baseline neutral
-            
-            positiveScore = (positiveScore / total) * 100;
-            negativeScore = (negativeScore / total) * 100;
-            neutralScore = 100 - positiveScore - negativeScore;
-            
-            // Determine dominant sentiment
-            let dominantSentiment;
-            if (positiveScore > negativeScore && positiveScore > neutralScore) {
-                dominantSentiment = 'POSITIVE';
-            } else if (negativeScore > positiveScore && negativeScore > neutralScore) {
-                dominantSentiment = 'NEGATIVE';
-            } else {
-                dominantSentiment = 'NEUTRAL';
-            }
-            
-            return {
-                sentiment: dominantSentiment,
-                positive: positiveScore,
-                negative: negativeScore,
-                neutral: neutralScore
-            };
-        }
-        
-        // Detect emotions in text
-        async function detectEmotions(text) {
-            // In a real app, we would use the toxicity model or another emotion detection model
-            // For this demo, we'll simulate emotion detection
-            
-            const emotions = [
-                {name: 'Joy', value: 0},
-                {name: 'Anger', value: 0},
-                {name: 'Sadness', value: 0},
-                {name: 'Surprise', value: 0},
-                {name: 'Fear', value: 0},
-                {name: 'Confidence', value: 0},
-                {name: 'Trust', value: 0},
-                {name: 'Anticipation', value: 0}
-            ];
-            
-            // Analyze text for emotions
-            const textLower = text.toLowerCase();
-            
-            // Joy detection
-            if (textLower.includes('happy') || textLower.includes('joy') || textLower.includes('love')) {
-                emotions[0].value = 80 + Math.random() * 20;
-            }
-            
-            // Anger detection
-            if (textLower.includes('angry') || textLower.includes('mad') || textLower.includes('furious')) {
-                emotions[1].value = 80 + Math.random() * 20;
-            }
-            
-            // Sadness detection
-            if (textLower.includes('sad') || textLower.includes('unhappy') || textLower.includes('depressed')) {
-                emotions[2].value = 80 + Math.random() * 20;
-            }
-            
-            // Surprise detection
-            if (textLower.includes('wow') || textLower.includes('surprise') || (textLower.includes('!') && textLower.includes('?'))) {
-                emotions[3].value = 70 + Math.random() * 30;
-            }
-            
-            // Fear detection
-            if (textLower.includes('scared') || textLower.includes('fear') || textLower.includes('afraid')) {
-                emotions[4].value = 80 + Math.random() * 20;
-            }
-            
-            // Confidence detection
-            if (textLower.includes('confident') || textLower.includes('sure') || textLower.includes('certain')) {
-                emotions[5].value = 80 + Math.random() * 20;
-            }
-            
-            // Trust detection
-            if (textLower.includes('trust') || textLower.includes('believe') || textLower.includes('rely')) {
-                emotions[6].value = 80 + Math.random() * 20;
-            }
-            
-            // Anticipation detection
-            if (textLower.includes('expect') || textLower.includes('anticipate') || textLower.includes('look forward')) {
-                emotions[7].value = 80 + Math.random() * 20;
-            }
-            
-            // If no strong emotions detected, distribute some random values
-            if (emotions.every(e => e.value < 30)) {
-                emotions.forEach(e => {
-                    e.value = Math.random() * 40;
-                });
-                
-                // Give slightly higher values to the first 3 emotions
-                emotions[0].value += 20;
-                emotions[1].value += 15;
-                emotions[2].value += 10;
-            }
-            
-            // Normalize values to be between 0-100
-            const maxValue = Math.max(...emotions.map(e => e.value));
-            if (maxValue > 100) {
-                emotions.forEach(e => {
-                    e.value = (e.value / maxValue) * 100;
-                });
-            }
-            
-            return emotions;
-        }
-        
-        // Extract key phrases from text
-        async function extractKeyPhrases(text) {
-            // In a real app, we would use NLP techniques to extract key phrases
-            // For this demo, we'll simulate it
-            
-            // Simple algorithm to extract important words
-            const words = text.split(/\s+/);
-            const stopWords = ['the', 'a', 'an', 'and', 'or', 'but', 'is', 'are', 'was', 'were', 'to', 'of', 'in', 'it', 'that', 'for'];
-            
-            // Count word frequencies (simple approach)
-            const wordCounts = {};
-            words.forEach(word => {
-                const cleanWord = word.toLowerCase().replace(/[^a-z']/g, '');
-                if (cleanWord.length > 3 && !stopWords.includes(cleanWord)) {
-                    wordCounts[cleanWord] = (wordCounts[cleanWord] || 0) + 1;
-                }
-            });
-            
-            // Get top 5 words
-            const sortedWords = Object.entries(wordCounts)
-                .sort((a, b) => b[1] - a[1])
-                .slice(0, 5)
-                .map(item => item[0]);
-            
-            return sortedWords;
-        }
-        
-        // Display the analysis results
-        function displayResults(sentiment, emotions, keyPhrases) {
-            // Display sentiment
-            sentimentScore.textContent = sentiment.sentiment;
-            sentimentScore.className = `sentiment-score ${sentiment.sentiment.toLowerCase()}`;
-            
-            // Display confidence percentages
-            positiveValue.textContent = `${sentiment.positive.toFixed(1)}%`;
-            neutralValue.textContent = `${sentiment.neutral.toFixed(1)}%`;
-            negativeValue.textContent = `${sentiment.negative.toFixed(1)}%`;
-            
-            // Update confidence bar
-            if (sentiment.sentiment === 'POSITIVE') {
-                confidenceBar.className = 'confidence-bar confidence-positive';
-                confidenceBar.style.width = `${sentiment.positive}%`;
-            } else if (sentiment.sentiment === 'NEGATIVE') {
-                confidenceBar.className = 'confidence-bar confidence-negative';
-                confidenceBar.style.width = `${sentiment.negative}%`;
-            } else {
-                confidenceBar.className = 'confidence-bar confidence-neutral';
-                confidenceBar.style.width = `${sentiment.neutral}%`;
-            }
-            
-            // Update visualization bars
-            visualizationBars[0].style.height = `${sentiment.positive}%`;
-            visualizationBars[0].setAttribute('data-value', `${sentiment.positive.toFixed(1)}%`);
-            visualizationBars[1].style.height = `${sentiment.neutral}%`;
-            visualizationBars[1].setAttribute('data-value', `${sentiment.neutral.toFixed(1)}%`);
-            visualizationBars[2].style.height = `${sentiment.negative}%`;
-            visualizationBars[2].setAttribute('data-value', `${sentiment.negative.toFixed(1)}%`);
-            
-            // Display emotions
-            emotionGrid.innerHTML = '';
-            emotions.forEach(emotion => {
-                const emotionItem = document.createElement('div');
-                emotionItem.className = 'emotion-item';
-                emotionItem.innerHTML = `
-                    <div class="emotion-name">${emotion.name}</div>
-                    <div class="emotion-value">${emotion.value.toFixed(0)}%</div>
-                `;
-                emotionGrid.appendChild(emotionItem);
-            });
-            
-            // Display keywords
-            keywordsContainer.innerHTML = '';
-            keyPhrases.forEach(phrase => {
-                const keywordElement = document.createElement('div');
-                keywordElement.className = 'keyword';
-                keywordElement.textContent = phrase;
-                keywordsContainer.appendChild(keywordElement);
-            });
-        }
-        
-        // Add analysis to history
-        function addToHistory(text, sentiment, emotions, keyPhrases) {
-            const historyItem = {
-                text,
-                sentiment,
-                emotions,
-                keyPhrases,
-                timestamp: new Date().toLocaleString()
-            };
-            
-            analysisHistory.unshift(historyItem); // Add to beginning of array
-            if (analysisHistory.length > 5) {
-                analysisHistory.pop(); // Keep only last 5 items
-            }
-            
-            // Save to localStorage
-            localStorage.setItem('sentimentAnalysisHistory', JSON.stringify(analysisHistory));
-            
-            // Update history display
-            updateHistoryDisplay();
-        }
-        
-        // Update the history display
-        function updateHistoryDisplay() {
-            historyList.innerHTML = '';
-            
-            analysisHistory.forEach((item, index) => {
-                const historyItem = document.createElement('div');
-                historyItem.className = 'history-item';
-                historyItem.innerHTML = `
-                    <div class="history-text">${item.text.substring(0, 50)}${item.text.length > 50 ? '...' : ''}</div>
-                    <span class="history-sentiment ${item.sentiment.sentiment.toLowerCase()}">
-                        ${item.sentiment.sentiment} (${item.sentiment.positive.toFixed(0)}%)
-                    </span>
-                `;
-                
-                historyItem.addEventListener('click', () => {
-                    loadHistoryItem(index);
-                });
-                
-                historyList.appendChild(historyItem);
-            });
-        }
-        
-        // Load a history item
-        function loadHistoryItem(index) {
-            const item = analysisHistory[index];
-            textInput.value = item.text;
-            displayResults(item.sentiment, item.emotions, item.keyPhrases);
-            noResults.style.display = 'none';
-            resultsContent.style.display = 'block';
-        }
-        
-        // Load history from localStorage
-        function loadHistory() {
-            const savedHistory = localStorage.getItem('sentimentAnalysisHistory');
-            if (savedHistory) {
-                analysisHistory = JSON.parse(savedHistory);
-                updateHistoryDisplay();
-            }
-        }
-        
-        // Clear the text input
-        function clearText() {
-            textInput.value = '';
-            noResults.style.display = 'block';
-            resultsContent.style.display = 'none';
-        }
-        
-        // Load sample text
-        function loadSampleText() {
-            const randomIndex = Math.floor(Math.random() * sampleTexts.length);
-            textInput.value = sampleTexts[randomIndex];
-        }
-    </script>
-</body>
+    ];
 
+    // Initialize
+    document.addEventListener('DOMContentLoaded', function() {
+      console.log("App initialized");
+      
+      // Basic button event listeners
+      analyzeBtn.addEventListener('click', analyzeText);
+      clearBtn.addEventListener('click', clearText);
+      sampleBtn.addEventListener('click', loadSampleText);
+      
+      // Mode toggles
+      document.getElementById('mode-alphabet').addEventListener('click', function() {
+        setMode('alphabet');
+      });
+      document.getElementById('mode-sign').addEventListener('click', function() {
+        setMode('sign');
+      });
+      
+      // Sign mode controls
+      document.getElementById('clearDrawingBtn').addEventListener('click', clearDrawing);
+      document.getElementById('insertLabelBtn').addEventListener('click', insertDetectedLabelToTextarea);
+      
+      loadHistory();
+      initializeSignCanvas();
+    });
+
+    // FIXED sentiment analysis - properly detects positive/negative/neutral
+    async function analyzeSentiment(text) {
+      let positiveScore = 0, negativeScore = 0, neutralScore = 0;
+      
+      // Enhanced word lists with weights
+      const positiveWords = [
+        {word: 'love', weight: 3}, {word: 'excellent', weight: 3}, {word: 'amazing', weight: 3},
+        {word: 'outstanding', weight: 3}, {word: 'perfect', weight: 3}, {word: 'fantastic', weight: 3},
+        {word: 'great', weight: 2}, {word: 'good', weight: 2}, {word: 'wonderful', weight: 2},
+        {word: 'awesome', weight: 2}, {word: 'brilliant', weight: 2}, {word: 'superb', weight: 2},
+        {word: 'happy', weight: 2}, {word: 'pleased', weight: 2}, {word: 'satisfied', weight: 2},
+        {word: 'recommend', weight: 2}, {word: 'exceeded', weight: 2}, {word: 'thrilled', weight: 2}
+      ];
+      
+      const negativeWords = [
+        {word: 'hate', weight: 3}, {word: 'terrible', weight: 3}, {word: 'awful', weight: 3},
+        {word: 'horrible', weight: 3}, {word: 'worst', weight: 3}, {word: 'disappointed', weight: 3},
+        {word: 'bad', weight: 2}, {word: 'poor', weight: 2}, {word: 'frustrated', weight: 2},
+        {word: 'angry', weight: 2}, {word: 'furious', weight: 2}, {word: 'unhelpful', weight: 2},
+        {word: 'avoid', weight: 2}, {word: 'waste', weight: 2}, {word: 'useless', weight: 2},
+        {word: 'broken', weight: 2}, {word: 'failed', weight: 2}, {word: 'problem', weight: 1}
+      ];
+      
+      const textLower = text.toLowerCase();
+      
+      // Count positive words with weights
+      positiveWords.forEach(item => {
+        const regex = new RegExp('\\b' + item.word + '\\b', 'gi');
+        const matches = textLower.match(regex);
+        if (matches) positiveScore += matches.length * item.weight;
+      });
+      
+      // Count negative words with weights
+      negativeWords.forEach(item => {
+        const regex = new RegExp('\\b' + item.word + '\\b', 'gi');
+        const matches = textLower.match(regex);
+        if (matches) negativeScore += matches.length * item.weight;
+      });
+      
+      // Add points for punctuation and sentence structure
+      positiveScore += (text.match(/!/g) || []).length * 0.5;
+      negativeScore += (text.match(/\?/g) || []).length * 0.3;
+      
+      // Check for negation patterns
+      const negations = (textLower.match(/\b(not|no|never|nothing|none)\b/g) || []).length;
+      if (negations > 0) {
+        negativeScore += negations * 1.5;
+      }
+      
+      // Calculate percentages with better balancing
+      const totalScore = positiveScore + negativeScore + 5; // Add base score
+      
+      if (totalScore > 0) {
+        positiveScore = (positiveScore / totalScore) * 100;
+        negativeScore = (negativeScore / totalScore) * 100;
+      }
+      
+      neutralScore = Math.max(0, 100 - positiveScore - negativeScore);
+      
+      // Normalize to ensure they sum to 100
+      const total = positiveScore + negativeScore + neutralScore;
+      if (total > 0) {
+        positiveScore = (positiveScore / total) * 100;
+        negativeScore = (negativeScore / total) * 100;
+        neutralScore = (neutralScore / total) * 100;
+      }
+      
+      // Determine dominant sentiment with better thresholds
+      let dominantSentiment;
+      if (positiveScore > negativeScore + 10 && positiveScore > neutralScore + 10) {
+        dominantSentiment = 'POSITIVE';
+      } else if (negativeScore > positiveScore + 10 && negativeScore > neutralScore + 10) {
+        dominantSentiment = 'NEGATIVE';
+      } else {
+        dominantSentiment = 'NEUTRAL';
+      }
+      
+      return { 
+        sentiment: dominantSentiment, 
+        positive: Math.min(100, Math.max(0, Math.round(positiveScore))), 
+        negative: Math.min(100, Math.max(0, Math.round(negativeScore))), 
+        neutral: Math.min(100, Math.max(0, Math.round(neutralScore))) 
+      };
+    }
+
+    // SIMPLIFIED emotion detection
+    async function detectEmotions(text) {
+      const emotions = [
+        {name:'Joy', value:0},
+        {name:'Anger', value:0},
+        {name:'Sadness', value:0},
+        {name:'Surprise', value:0},
+        {name:'Fear', value:0},
+        {name:'Confidence', value:0}
+      ];
+      
+      const textLower = text.toLowerCase();
+      
+      // Simple keyword matching
+      if (textLower.includes('happy') || textLower.includes('joy') || textLower.includes('love') || textLower.includes('excellent')) {
+        emotions[0].value = 80 + Math.random() * 20;
+      }
+      if (textLower.includes('angry') || textLower.includes('mad') || textLower.includes('furious') || textLower.includes('hate')) {
+        emotions[1].value = 80 + Math.random() * 20;
+      }
+      if (textLower.includes('sad') || textLower.includes('unhappy') || textLower.includes('depressed') || textLower.includes('disappointed')) {
+        emotions[2].value = 80 + Math.random() * 20;
+      }
+      if (textLower.includes('wow') || textLower.includes('surprise') || textLower.includes('amazing')) {
+        emotions[3].value = 70 + Math.random() * 30;
+      }
+      if (textLower.includes('scared') || textLower.includes('fear') || textLower.includes('afraid')) {
+        emotions[4].value = 80 + Math.random() * 20;
+      }
+      if (textLower.includes('confident') || textLower.includes('sure') || textLower.includes('certain')) {
+        emotions[5].value = 80 + Math.random() * 20;
+      }
+      
+      // If no strong emotions detected, add some random values
+      if (emotions.every(e => e.value < 30)) {
+        emotions.forEach(e => e.value = 20 + Math.random() * 40);
+      }
+      
+      // Normalize to 100%
+      const maxValue = Math.max(...emotions.map(e => e.value));
+      if (maxValue > 100) {
+        emotions.forEach(e => e.value = (e.value / maxValue) * 100);
+      }
+      
+      return emotions;
+    }
+
+    // SIMPLIFIED key phrase extraction
+    async function extractKeyPhrases(text) {
+      const words = text.split(/\s+/);
+      const stopWords = ['the','a','an','and','or','but','is','are','was','were','to','of','in','it','that','for','with','on','at','this','from'];
+      const wordCounts = {};
+      
+      words.forEach(word => {
+        const cleanWord = word.toLowerCase().replace(/[^a-z']/g, '');
+        if (cleanWord.length > 3 && !stopWords.includes(cleanWord)) {
+          wordCounts[cleanWord] = (wordCounts[cleanWord] || 0) + 1;
+        }
+      });
+      
+      const sortedWords = Object.entries(wordCounts)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 5)
+        .map(item => item[0]);
+      
+      return sortedWords.length > 0 ? sortedWords : ['text', 'analysis', 'sentiment', 'emotion'];
+    }
+
+    // SIMPLIFIED analyzeText function
+    async function analyzeText() {
+      const text = textInput.value.trim();
+      if (!text) { 
+        alert("Please enter some text to analyze"); 
+        return; 
+      }
+      
+      try {
+        loadingElement.style.display = 'block';
+        noResults.style.display = 'none';
+        resultsContent.style.display = 'none';
+        
+        const sentiment = await analyzeSentiment(text);
+        const emotions = await detectEmotions(text);
+        const keyPhrases = await extractKeyPhrases(text);
+        
+        displayResults(sentiment, emotions, keyPhrases);
+        addToHistory(text, sentiment, emotions, keyPhrases);
+        
+        loadingElement.style.display = 'none';
+        resultsContent.style.display = 'block';
+      } catch (e) {
+        console.error(e);
+        loadingElement.textContent = "Error analyzing text. Please try again.";
+      }
+    }
+
+    // Display results function
+    function displayResults(sentiment, emotions, keyPhrases) {
+      console.log("Displaying results:", sentiment);
+      
+      // Update sentiment score
+      sentimentScore.textContent = sentiment.sentiment;
+      sentimentScore.className = `sentiment-score ${sentiment.sentiment.toLowerCase()}`;
+      
+      // Update confidence values
+      positiveValue.textContent = `${sentiment.positive}%`;
+      neutralValue.textContent = `${sentiment.neutral}%`;
+      negativeValue.textContent = `${sentiment.negative}%`;
+      
+      // Update confidence bar
+      if (sentiment.sentiment === 'POSITIVE') {
+        confidenceBar.className = 'confidence-bar confidence-positive';
+        confidenceBar.style.width = `${sentiment.positive}%`;
+      } else if (sentiment.sentiment === 'NEGATIVE') {
+        confidenceBar.className = 'confidence-bar confidence-negative';
+        confidenceBar.style.width = `${sentiment.negative}%`;
+      } else {
+        confidenceBar.className = 'confidence-bar confidence-neutral';
+        confidenceBar.style.width = `${sentiment.neutral}%`;
+      }
+      
+      // Update visualization bars
+      visualizationBars[0].style.height = `${sentiment.positive}%`;
+      visualizationBars[0].setAttribute('data-value', `${sentiment.positive}%`);
+      visualizationBars[1].style.height = `${sentiment.neutral}%`;
+      visualizationBars[1].setAttribute('data-value', `${sentiment.neutral}%`);
+      visualizationBars[2].style.height = `${sentiment.negative}%`;
+      visualizationBars[2].setAttribute('data-value', `${sentiment.negative}%`);
+      
+      // Update emotions grid
+      emotionGrid.innerHTML = '';
+      emotions.forEach(emotion => {
+        const emotionItem = document.createElement('div');
+        emotionItem.className = 'emotion-item';
+        emotionItem.innerHTML = `
+          <div class="emotion-name">${emotion.name}</div>
+          <div class="emotion-value">${emotion.value.toFixed(0)}%</div>
+        `;
+        emotionGrid.appendChild(emotionItem);
+      });
+      
+      // Update keywords
+      keywordsContainer.innerHTML = '';
+      keyPhrases.forEach(phrase => {
+        const keywordElement = document.createElement('div');
+        keywordElement.className = 'keyword';
+        keywordElement.textContent = phrase;
+        keywordsContainer.appendChild(keywordElement);
+      });
+    }
+
+    // History functions
+    function addToHistory(text, sentiment, emotions, keyPhrases) {
+      const historyItem = { 
+        text, 
+        sentiment, 
+        emotions, 
+        keyPhrases, 
+        timestamp: new Date().toLocaleString() 
+      };
+      analysisHistory.unshift(historyItem);
+      if (analysisHistory.length > 5) analysisHistory.pop();
+      localStorage.setItem('sentimentAnalysisHistory', JSON.stringify(analysisHistory));
+      updateHistoryDisplay();
+    }
+
+    function updateHistoryDisplay(){
+      historyList.innerHTML = '';
+      analysisHistory.forEach((item, index) => {
+        const historyItem = document.createElement('div');
+        historyItem.className = 'history-item';
+        historyItem.innerHTML = `
+          <div class="history-text">${item.text.substring(0,50)}${item.text.length>50?'...':''}</div>
+          <span class="history-sentiment ${item.sentiment.sentiment.toLowerCase()}">${item.sentiment.sentiment} (${item.sentiment.positive}%)</span>
+        `;
+        historyItem.addEventListener('click', () => loadHistoryItem(index));
+        historyList.appendChild(historyItem);
+      });
+    }
+
+    function loadHistoryItem(index){
+      const item = analysisHistory[index];
+      textInput.value = item.text;
+      displayResults(item.sentiment, item.emotions, item.keyPhrases);
+      noResults.style.display = 'none';
+      resultsContent.style.display = 'block';
+    }
+
+    function loadHistory(){
+      const saved = localStorage.getItem('sentimentAnalysisHistory');
+      if (saved) { 
+        analysisHistory = JSON.parse(saved); 
+        updateHistoryDisplay(); 
+      }
+    }
+
+    function clearText(){ 
+      textInput.value = ''; 
+      noResults.style.display = 'block'; 
+      resultsContent.style.display = 'none'; 
+    }
+    
+    function loadSampleText(){ 
+      const randomIndex = Math.floor(Math.random() * sampleTexts.length);
+      textInput.value = sampleTexts[randomIndex]; 
+    }
+
+    // ---------- FIXED SIGN MODE WITH WORKING DRAWING ----------
+    const signPanel = document.getElementById('signPanel');
+    const signCanvas = document.getElementById('signCanvas');
+    const signStatus = document.getElementById('signStatus');
+    const detectedLabelEl = document.getElementById('detectedLabel');
+    const signMiniResults = document.getElementById('signMiniResults');
+
+    let signCtx = null;
+    let isSignActive = false;
+    let isDrawing = false;
+    let currentStroke = [];
+    let allStrokes = [];
+
+    function initializeSignCanvas() {
+      const canvas = signCanvas;
+      const rect = canvas.getBoundingClientRect();
+      canvas.width = rect.width;
+      canvas.height = rect.height;
+      signCtx = canvas.getContext('2d');
+      
+      // Set drawing styles
+      signCtx.lineJoin = 'round';
+      signCtx.lineCap = 'round';
+      signCtx.lineWidth = 6;
+      signCtx.strokeStyle = 'rgba(211,0,197,0.95)';
+      signCtx.shadowBlur = 12;
+      signCtx.shadowColor = 'rgba(211,0,197,0.95)';
+      
+      setupDrawingEvents();
+    }
+
+    function setupDrawingEvents() {
+      let isMouseDown = false;
+      
+      // Mouse events
+      signCanvas.addEventListener('mousedown', startDrawing);
+      signCanvas.addEventListener('mousemove', draw);
+      signCanvas.addEventListener('mouseup', stopDrawing);
+      signCanvas.addEventListener('mouseout', stopDrawing);
+      
+      // Touch events
+      signCanvas.addEventListener('touchstart', handleTouchStart);
+      signCanvas.addEventListener('touchmove', handleTouchMove);
+      signCanvas.addEventListener('touchend', handleTouchEnd);
+      
+      function startDrawing(e) {
+        isMouseDown = true;
+        isDrawing = true;
+        currentStroke = [];
+        const pos = getMousePos(e);
+        currentStroke.push(pos);
+        signStatus.textContent = 'Drawing...';
+        draw(e); // Draw the first point
+      }
+      
+      function draw(e) {
+        if (!isMouseDown) return;
+        
+        const pos = getMousePos(e);
+        currentStroke.push(pos);
+        
+        // Draw the stroke
+        signCtx.beginPath();
+        signCtx.moveTo(currentStroke[currentStroke.length-2].x, currentStroke[currentStroke.length-2].y);
+        signCtx.lineTo(pos.x, pos.y);
+        signCtx.stroke();
+        
+        // Add glow effect
+        signCtx.globalAlpha = 0.18;
+        signCtx.lineWidth = 18;
+        signCtx.stroke();
+        signCtx.globalAlpha = 1;
+        signCtx.lineWidth = 6;
+      }
+      
+      function stopDrawing() {
+        if (isMouseDown && currentStroke.length > 0) {
+          allStrokes.push([...currentStroke]);
+          const label = classifyStrokes(allStrokes);
+          detectedLabelEl.textContent = label;
+          applySignSentiment(label);
+          signStatus.textContent = `Gesture analyzed: ${label}`;
+        }
+        isMouseDown = false;
+        isDrawing = false;
+      }
+      
+      function getMousePos(e) {
+        const rect = signCanvas.getBoundingClientRect();
+        let clientX, clientY;
+        
+        if (e.type.includes('touch')) {
+          clientX = e.touches[0].clientX;
+          clientY = e.touches[0].clientY;
+        } else {
+          clientX = e.clientX;
+          clientY = e.clientY;
+        }
+        
+        return {
+          x: clientX - rect.left,
+          y: clientY - rect.top
+        };
+      }
+      
+      function handleTouchStart(e) {
+        e.preventDefault();
+        startDrawing(e.touches[0]);
+      }
+      
+      function handleTouchMove(e) {
+        e.preventDefault();
+        if (isDrawing) {
+          draw(e.touches[0]);
+        }
+      }
+      
+      function handleTouchEnd(e) {
+        e.preventDefault();
+        stopDrawing();
+      }
+    }
+
+    function setMode(mode){
+      console.log("Setting mode to:", mode);
+      if (mode === 'alphabet') {
+        document.getElementById('mode-alphabet').classList.add('active');
+        document.getElementById('mode-sign').classList.remove('active');
+        stopSign();
+      } else {
+        document.getElementById('mode-sign').classList.add('active');
+        document.getElementById('mode-alphabet').classList.remove('active');
+        startSign();
+      }
+    }
+
+    function startSign(){
+      console.log("Starting sign mode...");
+      if (isSignActive) return;
+      isSignActive = true;
+      signPanel.style.display = 'block';
+      signStatus.textContent = 'Click and drag to draw gestures';
+      detectedLabelEl.textContent = '—';
+      
+      // Re-initialize canvas to ensure proper sizing
+      setTimeout(() => {
+        initializeSignCanvas();
+      }, 100);
+    }
+
+    function stopSign(){
+      console.log("Stopping sign mode...");
+      if (!isSignActive) return;
+      isSignActive = false;
+      signPanel.style.display = 'none';
+      clearDrawing(true);
+      signStatus.textContent = 'Stopped';
+      detectedLabelEl.textContent = '—';
+      signMiniResults.innerHTML = '';
+    }
+
+    function clearDrawing(keepHistory=false){
+      if (signCtx) { 
+        signCtx.clearRect(0, 0, signCanvas.width, signCanvas.height); 
+      }
+      currentStroke = [];
+      if (!keepHistory) allStrokes = [];
+      isDrawing = false;
+      detectedLabelEl.textContent = '—';
+      signStatus.textContent = 'Drawing cleared';
+    }
+
+    function insertDetectedLabelToTextarea(){
+      const label = detectedLabelEl.textContent;
+      if (label && label !== '—') {
+        if (textInput.value.trim().length > 0) {
+          textInput.value += ' ';
+        }
+        textInput.value += label;
+        signStatus.textContent = `"${label}" inserted into text`;
+      } else {
+        signStatus.textContent = 'No detected label to insert';
+      }
+    }
+
+    function classifyStrokes(strokes) {
+      const points = [];
+      for (const stroke of strokes) points.push(...stroke);
+      
+      if (points.length < 6) return 'unknown';
+      
+      // Calculate drawing characteristics
+      const first = points[0];
+      const last = points[points.length - 1];
+      const deltaY = first.y - last.y;
+      const deltaX = first.x - last.x;
+      
+      // Calculate drawing complexity
+      let directionChanges = 0;
+      for (let i = 2; i < points.length; i++) {
+        const dx1 = points[i-1].x - points[i-2].x;
+        const dy1 = points[i-1].y - points[i-2].y;
+        const dx2 = points[i].x - points[i-1].x;
+        const dy2 = points[i].y - points[i-1].y;
+        
+        if ((dx1 * dx2 < 0) || (dy1 * dy2 < 0)) {
+          directionChanges++;
+        }
+      }
+      
+      // Classify based on patterns
+      if (deltaY > 50 && directionChanges < 5) return 'happy';
+      if (deltaY < -50 && directionChanges < 5) return 'sad';
+      if (deltaX > 50 && directionChanges < 5) return 'angry';
+      if (deltaX < -50 && directionChanges < 5) return 'surprised';
+      if (directionChanges > 10) return 'excited';
+      if (points.length > 30 && directionChanges > 5) return 'love';
+      
+      return 'neutral';
+    }
+
+    function applySignSentiment(label) {
+      const sentimentMap = {
+        'happy': { sentiment: 'POSITIVE', positive: 85, negative: 5, neutral: 10 },
+        'sad': { sentiment: 'NEGATIVE', positive: 5, negative: 85, neutral: 10 },
+        'angry': { sentiment: 'NEGATIVE', positive: 10, negative: 80, neutral: 10 },
+        'surprised': { sentiment: 'POSITIVE', positive: 70, negative: 10, neutral: 20 },
+        'love': { sentiment: 'POSITIVE', positive: 95, negative: 2, neutral: 3 },
+        'excited': { sentiment: 'POSITIVE', positive: 90, negative: 5, neutral: 5 },
+        'neutral': { sentiment: 'NEUTRAL', positive: 25, negative: 25, neutral: 50 }
+      };
+      
+      const emotionMap = {
+        'happy': [{name:'Joy',value:90},{name:'Excitement',value:75},{name:'Content',value:65}],
+        'sad': [{name:'Sadness',value:85},{name:'Disappointment',value:70},{name:'Melancholy',value:60}],
+        'angry': [{name:'Anger',value:85},{name:'Frustration',value:75},{name:'Irritation',value:65}],
+        'surprised': [{name:'Surprise',value:80},{name:'Awe',value:65},{name:'Wonder',value:55}],
+        'love': [{name:'Love',value:95},{name:'Affection',value:85},{name:'Warmth',value:75}],
+        'excited': [{name:'Excitement',value:90},{name:'Energy',value:80},{name:'Anticipation',value:70}],
+        'neutral': [{name:'Calm',value:70},{name:'Content',value:60},{name:'Peaceful',value:50}]
+      };
+      
+      const keywordMap = {
+        'happy': ['joyful', 'upbeat', 'positive'],
+        'sad': ['unhappy', 'downcast', 'melancholy'],
+        'angry': ['frustrated', 'irritated', 'upset'],
+        'surprised': ['astonished', 'amazed', 'shocked'],
+        'love': ['affectionate', 'caring', 'devoted'],
+        'excited': ['energetic', 'thrilled', 'enthusiastic'],
+        'neutral': ['calm', 'balanced', 'composed']
+      };
+      
+      const sentiment = sentimentMap[label] || sentimentMap['neutral'];
+      const emotions = emotionMap[label] || emotionMap['neutral'];
+      const keywords = keywordMap[label] || keywordMap['neutral'];
+      
+      displayResults(sentiment, emotions, keywords);
+      
+      const colorMap = {
+        'happy': '#00ff88',
+        'sad': '#ff2a6d',
+        'angry': '#ff4444',
+        'surprised': '#ffaa00',
+        'love': '#ff2a6d',
+        'excited': '#00ccff',
+        'neutral': '#f5d742'
+      };
+      
+      signMiniResults.innerHTML = `
+        <div style="background:rgba(5,217,232,0.02);padding:10px;border-radius:6px;border:1px solid rgba(5,217,232,0.06)">
+          <div style="font-weight:700;color:var(--neon-blue)">Gesture Detected</div>
+          <div style="margin-top:6px;font-weight:800;color:${colorMap[label] || '#f5d742'};">${label.toUpperCase()}</div>
+          <div style="margin-top:8px;font-size:0.9rem;color:var(--text-secondary)">
+            Sentiment: <span style="font-weight:700;color:${sentiment.sentiment === 'POSITIVE' ? '#00ff88' : sentiment.sentiment === 'NEGATIVE' ? '#ff2a6d' : '#f5d742'}">${sentiment.sentiment}</span>
+          </div>
+          <div style="margin-top:4px;font-size:0.8rem;color:var(--text-secondary)">Draw to detect different emotions</div>
+        </div>
+      `;
+    }
+
+    // Initialize sign panel as hidden
+    signPanel.style.display = 'none';
+
+  </script>
+</body>
 </html>
